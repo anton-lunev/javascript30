@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Speech Detection</title>
+</head>
+<style>
+    html {
+        font-size: 10px;
+    }
+
+    body {
+        background: #ffc600;
+        font-family: 'helvetica neue', sans-serif;
+        font-weight: 200;
+        font-size: 20px;
+    }
+
+    .words {
+        max-width: 500px;
+        margin: 50px auto;
+        background: white;
+        border-radius: 5px;
+        box-shadow: 10px 10px 0 rgba(0, 0, 0, 0.1);
+        padding: 1rem 2rem 1rem 5rem;
+        background: -webkit-gradient(linear, 0 0, 0 100%, from(#d9eaf3), color-stop(4%, #fff)) 0 4px;
+        background-size: 100% 3rem;
+        position: relative;
+        line-height: 3rem;
+    }
+
+    p {
+        margin: 0 0 3rem 0;
+    }
+
+    .words:before {
+        content: '';
+        position: absolute;
+        width: 4px;
+        top: 0;
+        left: 30px;
+        bottom: 0;
+        border: 1px solid;
+        border-color: transparent #efe4e4;
+    }
+</style>
+<body>
+
+<form>
+    <label><input type="radio" name="lang" value="EN" checked> English</label>
+    <label><input type="radio" name="lang" value="RU"> Русский</label>
+</form>
+<div class="words" contenteditable>
+</div>
+
+<script>
+    window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.interimResults = true;
+    recognition.lang = 'EN';
+
+    let p;
+    const words = document.querySelector('.words');
+    createParagraph();
+
+    document.querySelectorAll('input[type=radio]').forEach(input => {
+        input.addEventListener('change', e => {
+            recognition.lang = e.target.value;
+        })
+    });
+
+    function createParagraph() {
+        p = document.createElement('p');
+        words.appendChild(p);
+    }
+
+    recognition.addEventListener('result', e => {
+        const transcript = Array.from(e.results)
+            .map(result => result[0])
+            .map(result => result.transcript)
+            .join('');
+
+        if (transcript.toLowerCase() === 'switch to russian') {
+            recognition.lang = 'RU';
+        } else if (transcript.toLowerCase() === 'переключи на английский') {
+            recognition.lang = 'EN';
+        } else {
+            p.textContent = transcript;
+        }
+        if (e.results[0].isFinal) {
+            createParagraph();
+        }
+        console.log(transcript);
+    });
+
+    recognition.addEventListener('end', recognition.start);
+    recognition.start();
+</script>
+
+
+</body>
+</html>
